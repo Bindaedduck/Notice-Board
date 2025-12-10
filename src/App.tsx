@@ -4,6 +4,8 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import './App.css';
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@reduxjs/toolkit/query';
 
 //and design 관련
 const { Search } = Input;
@@ -11,10 +13,15 @@ const { Header, Footer, Content } = Layout;
 type SearchProps = GetProps<typeof Input.Search>;
 
 interface DataType {
-  key: React.Key;
-  name: string;
-  age: number;
-  address: string;
+  reqId: string;
+  bizCLS: string;
+  idpType: string;
+  fileName: string;
+  filePath: string;
+  page: number;
+  status: string;
+  startDateTime: string;
+  endDateTime: string;
 }
 
 const dateFormat = 'YYYY-MM-DD';
@@ -22,91 +29,120 @@ dayjs.extend(customParseFormat);
 
 const columns: TableColumnsType<DataType> = [
   {
-    title: 'Name',
-    dataIndex: 'name',
+    title: 'Req Id',
+    dataIndex: 'reqId',
     showSorterTooltip: { target: 'full-header' },
-    filters: [
-      {
-        text: 'Joe',
-        value: 'Joe',
-      },
-      {
-        text: 'Jim',
-        value: 'Jim',
-      },
-      {
-        text: 'Submenu',
-        value: 'Submenu',
-        children: [
-          {
-            text: 'Green',
-            value: 'Green',
-          },
-          {
-            text: 'Black',
-            value: 'Black',
-          },
-        ],
-      },
-    ],
+    // filters: [
+    //   {
+    //     text: 'Joe',
+    //     value: 'Joe',
+    //   },
+    //   {
+    //     text: 'Jim',
+    //     value: 'Jim',
+    //   },
+    //   {
+    //     text: 'Submenu',
+    //     value: 'Submenu',
+    //     children: [
+    //       {
+    //         text: 'Green',
+    //         value: 'Green',
+    //       },
+    //       {
+    //         text: 'Black',
+    //         value: 'Black',
+    //       },
+    //     ],
+    //   },
+    // ],
     // specify the condition of filtering result
     // here is that finding the name started with `value`
-    onFilter: (value, record) => record.name.indexOf(value as string) === 0,
-    sorter: (a, b) => a.name.length - b.name.length,
+    // onFilter: (value, record) => record.name.indexOf(value as string) === 0,
+    // sorter: (a, b) => a.name.length - b.name.length,
     sortDirections: ['descend'],
   },
   {
-    title: 'Age',
-    dataIndex: 'age',
+    title: 'Biz CLS',
+    dataIndex: 'bizCLS',
     defaultSortOrder: 'descend',
-    sorter: (a, b) => a.age - b.age,
   },
   {
-    title: 'Address',
-    dataIndex: 'address',
-    filters: [
-      {
-        text: 'London',
-        value: 'London',
-      },
-      {
-        text: 'New York',
-        value: 'New York',
-      },
-    ],
-    onFilter: (value, record) => record.address.indexOf(value as string) === 0,
+    title: 'Idp Type',
+    dataIndex: 'idpType',
+    defaultSortOrder: 'descend',
   },
+  {
+    title: 'File Name',
+    dataIndex: 'fileName',
+  },
+  {
+    title: 'File Path',
+    dataIndex: 'filePath',
+  },
+  {
+    title: 'Page',
+    dataIndex: 'page',
+    defaultSortOrder: 'descend',
+    //sorter: (a, b) => a.age - b.age,
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    // filters: [
+    //   {
+    //     text: 'London',
+    //     value: 'London',
+    //   },
+    //   {
+    //     text: 'New York',
+    //     value: 'New York',
+    //   },
+    // ],
+    // onFilter: (value, record) => record.address.indexOf(value as string) === 0,
+  },
+  {
+    title: 'Start Date Time',
+    dataIndex: 'startDateTime',
+  },
+   {
+    title: 'End Date Time',
+    dataIndex: 'endDateTime',
+  }
 ];
 
-const data = [
-  {
-    key: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-  },
-  {
-    key: '2',
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-  },
-  {
-    key: '3',
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sydney No. 1 Lake Park',
-  },
-  {
-    key: '4',
-    name: 'Jim Red',
-    age: 32,
-    address: 'London No. 2 Lake Park',
-  },
-];
+// const data = [
+//   {
+//     key: '1',
+//     name: 'John Brown',
+//     age: 32,
+//     address: 'New York No. 1 Lake Park',
+//   },
+//   {
+//     key: '2',
+//     name: 'Jim Green',
+//     age: 42,
+//     address: 'London No. 1 Lake Park',
+//   },
+//   {
+//     key: '3',
+//     name: 'Joe Black',
+//     age: 32,
+//     address: 'Sydney No. 1 Lake Park',
+//   },
+//   {
+//     key: '4',
+//     name: 'Jim Red',
+//     age: 32,
+//     address: 'London No. 2 Lake Park',
+//   },
+// ];
 
 function App() {
   const[showSearch, setShowSearch] = useState(false); 
+  const tableRaw = useSelector((state) => { return state })
+
+  const data = tableRaw; 
 
   const onSwitchChange = () => {
     setShowSearch(!showSearch);
@@ -162,7 +198,7 @@ function App() {
         <Content className="layout-content-style">
           <Table<DataType>
                 columns={columns}
-                dataSource={data}
+                dataSource={tableRaw}
                 onChange={onTableChange}
                 showSorterTooltip={{ target: 'sorter-icon' }} /> 
         </Content>
