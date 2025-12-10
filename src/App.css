@@ -2,18 +2,22 @@
   border-radius: 8;
   overflow: hidden;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-header-style {
   text-align: right;
-  height: 150px;
+  line-height: 100px;
+  height: 200px;
   align-items:center;
-  background-color: #FFFFFF;
+  flex-shrink: 0;
 }
 
 .layout-content-style {
   text-align: center;
-  background-color: #0958d9;
+  flex-grow: 1;
+  min-height: 0;
 }
 
 .layout-footer-style {

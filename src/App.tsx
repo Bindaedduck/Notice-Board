@@ -5,7 +5,6 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import './App.css';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { RootState } from '@reduxjs/toolkit/query';
 
 //and design 관련
 const { Search } = Input;
@@ -20,8 +19,8 @@ interface DataType {
   filePath: string;
   page: number;
   status: string;
-  startDateTime: string;
-  endDateTime: string;
+  startDateTime: Date;
+  endDateTime: Date;
 }
 
 const dateFormat = 'YYYY-MM-DD';
@@ -60,12 +59,12 @@ const columns: TableColumnsType<DataType> = [
     // here is that finding the name started with `value`
     // onFilter: (value, record) => record.name.indexOf(value as string) === 0,
     // sorter: (a, b) => a.name.length - b.name.length,
-    sortDirections: ['descend'],
+    //sortDirections: ['descend'],
   },
   {
     title: 'Biz CLS',
     dataIndex: 'bizCLS',
-    defaultSortOrder: 'descend',
+    //defaultSortOrder: 'descend',
   },
   {
     title: 'Idp Type',
@@ -83,7 +82,7 @@ const columns: TableColumnsType<DataType> = [
   {
     title: 'Page',
     dataIndex: 'page',
-    defaultSortOrder: 'descend',
+    //efaultSortOrder: 'descend',
     //sorter: (a, b) => a.age - b.age,
   },
   {
@@ -108,7 +107,7 @@ const columns: TableColumnsType<DataType> = [
    {
     title: 'End Date Time',
     dataIndex: 'endDateTime',
-  }
+  },
 ];
 
 // const data = [
@@ -140,9 +139,8 @@ const columns: TableColumnsType<DataType> = [
 
 function App() {
   const[showSearch, setShowSearch] = useState(false); 
-  const tableRaw = useSelector((state) => { return state })
-
-  const data = tableRaw; 
+  const tableRow = useSelector((state) => { return state.tableRow})
+  
 
   const onSwitchChange = () => {
     setShowSearch(!showSearch);
@@ -196,10 +194,11 @@ function App() {
           : null}
         </Header>
         <Content className="layout-content-style">
-          <Table<DataType>
+          <Table<DataType> 
                 columns={columns}
-                dataSource={tableRaw}
-                onChange={onTableChange}
+                dataSource={tableRow}
+                // onChange={onTableChange}
+                scroll={{ y: '75vh', x: '100%' }}
                 showSorterTooltip={{ target: 'sorter-icon' }} /> 
         </Content>
         <Footer className="layout-footer-style">
