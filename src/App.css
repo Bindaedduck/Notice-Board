@@ -1,0 +1,29 @@
+.layout-main-style {
+  border-radius: 8;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.layout-header-style {
+  text-align: right;
+  height: 150px;
+  align-items:center;
+  background-color: #FFFFFF;
+}
+}
+
+.layout-content-style {
+  text-align: center;
+  background-color: #0958d9;
+}
+
+.layout-footer-style {
+  text-align: center;
+}
+
+.search-style {
+  width: 300px;
+  margin-right: 90px;
+}
+
+
