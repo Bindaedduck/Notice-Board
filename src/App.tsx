@@ -1,18 +1,23 @@
-import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker, Breadcrumb, Menu, theme } from 'antd';
+import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker, Breadcrumb, Menu, theme, Checkbox, Popconfirm, Button } from 'antd';
 import type { TableColumnsType, TableProps, GetProps, MenuProps  } from 'antd';
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import './App.css';
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { chaneTableRow } from "./store/tableStore.tsx"
 
 //and design 관련
 const { Search } = Input;
 const { Header, Footer, Content, Sider } = Layout;
 type SearchProps = GetProps<typeof Input.Search>;
 
+const dateFormat = 'YYYY-MM-DD';
+dayjs.extend(customParseFormat);
+
 interface DataType {
+  key: React.Key;
   reqId: string;
   bizCLS: string;
   idpType: string;
@@ -48,96 +53,11 @@ const sideItems: MenuProps['items'] = [UserOutlined, LaptopOutlined, Notificatio
   },
 );
 
-const dateFormat = 'YYYY-MM-DD';
-dayjs.extend(customParseFormat);
-
-const columns: TableColumnsType<DataType> = [
-  {
-    title: 'Req Id',
-    dataIndex: 'reqId',
-    showSorterTooltip: { target: 'full-header' },
-    // filters: [
-    //   {
-    //     text: 'Joe',
-    //     value: 'Joe',
-    //   },
-    //   {
-    //     text: 'Jim',
-    //     value: 'Jim',
-    //   },
-    //   {
-    //     text: 'Submenu',
-    //     value: 'Submenu',
-    //     children: [
-    //       {
-    //         text: 'Green',
-    //         value: 'Green',
-    //       },
-    //       {
-    //         text: 'Black',
-    //         value: 'Black',
-    //       },
-    //     ],
-    //   },
-    // ],
-    // specify the condition of filtering result
-    // here is that finding the name started with `value`
-    // onFilter: (value, record) => record.name.indexOf(value as string) === 0,
-    // sorter: (a, b) => a.name.length - b.name.length,
-    //sortDirections: ['descend'],
-  },
-  {
-    title: 'Biz CLS',
-    dataIndex: 'bizCLS',
-    //defaultSortOrder: 'descend',
-  },
-  {
-    title: 'Idp Type',
-    dataIndex: 'idpType',
-    defaultSortOrder: 'descend',
-  },
-  {
-    title: 'File Name',
-    dataIndex: 'fileName',
-  },
-  {
-    title: 'File Path',
-    dataIndex: 'filePath',
-  },
-  {
-    title: 'Page',
-    dataIndex: 'page',
-    //efaultSortOrder: 'descend',
-    //sorter: (a, b) => a.age - b.age,
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    // filters: [
-    //   {
-    //     text: 'London',
-    //     value: 'London',
-    //   },
-    //   {
-    //     text: 'New York',
-    //     value: 'New York',
-    //   },
-    // ],
-    // onFilter: (value, record) => record.address.indexOf(value as string) === 0,
-  },
-  {
-    title: 'Start Date Time',
-    dataIndex: 'startDateTime',
-  },
-   {
-    title: 'End Date Time',
-    dataIndex: 'endDateTime',
-  },
-];
-
 function App() {
   const[showSearchFilter, setShowSearchFilter] = useState(false); 
-  const searchFilterIsVisible = `search-filter__isVisible ${ showSearchFilter? 'visible' : 'hidden'}`;
+  const[showOperation, setShowOperation] = useState(false);
+  const dispatch = useDispatch();
+  const searchIsVisible = `search__IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`;
   const tableRow = useSelector((state) => { return state.tableRow})
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -147,11 +67,90 @@ function App() {
     setShowSearchFilter(!showSearchFilter);
   };
 
-  const onTableChange: TableProps<DataType>['onChange'] = (pagination, filters, sorter, extra) => {
-    console.log('params', pagination, filters, sorter, extra);
+  const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
+    console.log(info?.source, value);
   };
 
-  const onSearch: SearchProps['onSearch'] = (value, _e, info) => console.log(info?.source, value);
+  const handleDelete = (key: React.Key) => {
+    const newData = tableRow.filter((item) => item.key !== key);
+    dispatch(chaneTableRow(newData));
+  };
+
+  const rowSelection: TableProps<DataType>['rowSelection'] = {
+    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+      setShowOperation(!showOperation);
+    },
+    // getCheckboxProps: (record: DataType) => ({
+    //   disabled: record.reqId === 'Disabled User', // Column configuration not to be checked
+    //   name: record.reqId,
+    // }),
+  };
+
+  const columns: TableColumnsType<DataType> = [
+    {
+      title: 'Req Id',
+      dataIndex: 'reqId',
+      showSorterTooltip: { target: 'full-header' },
+    },
+    {
+      title: 'Biz CLS',
+      dataIndex: 'bizCLS',
+      sorter: (a, b) => a.bizCLS.localeCompare(b.bizCLS),
+    },
+    {
+      title: 'Idp Type',
+      dataIndex: 'idpType',
+      sorter: (a, b) => a.idpType.localeCompare(b.idpType),
+    },
+    {
+      title: 'File Name',
+      dataIndex: 'fileName',
+    },
+    {
+      title: 'File Path',
+      dataIndex: 'filePath',
+    },
+    {
+      title: 'Page',
+      dataIndex: 'page',
+      sorter: (a, b) => a.page - b.page,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      sorter: (a, b) => a.status.localeCompare(b.status),
+    },
+    {
+      title: 'Start Date Time',
+      dataIndex: 'startDateTime',
+      sorter: (a, b) => dayjs(a.startDateTime).valueOf() - dayjs(b.startDateTime).valueOf(),
+    },
+    {
+      title: 'End Date Time',
+      dataIndex: 'endDateTime',
+      sorter: (a, b) => dayjs(a.endDateTime).valueOf() - dayjs(b.endDateTime).valueOf(),
+    }
+  ];
+
+  const extraColumn = {
+    className: showOperation ? "column-operation__visible" : "column-operation__hidden",
+    title: 'Operation',
+    dataIndex: 'operation',
+    render: (_, record) =>
+      tableRow.length >= 1 ? (
+        <div style={{ display:"flex", gap:"5px" }}>
+          <Button color="primary" variant="outlined" onClick={() => handleDelete(record.key)}>Edit</Button>
+
+
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+            <Button danger>Delete</Button>
+          </Popconfirm>
+        </div>
+      ) : null,
+  }
+
+  //체크버튼을 누른 상태면 Operation컬럼 보여주기
+  const finalColumns = showOperation ? [...columns, extraColumn] : columns;
 
   return (
         <Layout>
@@ -182,29 +181,27 @@ function App() {
               <Content className="content">
                 <div style={{display: 'flex'}}>
                   {/* Search */}
-                    <div className={searchFilterIsVisible}>
+                    <div className={searchIsVisible}>
                       {/* Req ID search */}
-                      <Search className="search-filter"
+                      <Search className="search"
                               placeholder="Req ID"
                               allowClear
                               enterButton="Search"
                               size="large"
                               onSearch={onSearch} />
                       {/* Status search */}
-                      <Search className="search-filter"
+                      <Search className="search"
                               placeholder="Status"
                               allowClear
                               enterButton="search"
                               size="large"
                               onSearch={onSearch} />
                       {/* Start Date search */}
-                      <DatePicker className="search-filter__date"
-                                  defaultValue={dayjs('2025-12-10', dateFormat)}
+                      <DatePicker className="search--date"
                                   minDate={dayjs('2023-01-01', dateFormat)}
                                   maxDate={dayjs('2025-06-30', dateFormat)} />
                       {/* End Date search */}
-                      <DatePicker className="search-filter__date"
-                                  defaultValue={dayjs('2025-12-10', dateFormat)}
+                      <DatePicker className="search--date"
                                   minDate={dayjs('2023-01-01', dateFormat)}
                                   maxDate={dayjs('2025-06-30', dateFormat)} />
                     </div>
@@ -214,17 +211,17 @@ function App() {
                 
                 {/* Table */}
                 <Table<DataType> 
-                    columns={columns}
+                    rowSelection={{ type: Checkbox, ...rowSelection }}
+                    columns={finalColumns}
                     dataSource={tableRow}
-                    // onChange={onTableChange}
-                    // scroll={{ y: '60vh' }}
+                    scroll={{ y: '60vh' }}
                     showSorterTooltip={{ target: 'sorter-icon' }} /> 
               </Content>
             </Layout>
           </div>
 
           {/* Footer */}
-          <Footer className="footer">
+          <Footer style = {{background: borderRadiusLG, textAlign: "center"}}>
             <FloatButton onClick={() => console.log('onClick')} />
           </Footer>
         </Layout>
@@ -232,3 +229,4 @@ function App() {
 }
 
 export default App
+

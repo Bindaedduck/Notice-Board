@@ -29,31 +29,40 @@
   width: 40Px;
 }
 
-.footer {
-  text-align: center;
-}
-
-.search-filter {
+.search {
   width: 250px;
   margin-right: 100px;
 }
 
-.search-filter__date {
+.search--date {
   width: 250px;
   height: 40px;
   margin-right: 100px;
 }
 
-.search-filter__isVisible{
-  transition: visibility 0.3s, opacity 0.3s ease-in-out;
+.search__IsVisible{
+  transition: visibility 0.5s, opacity 0.5s ease-in-out;
 }
 
-.search-filter__isVisible.hidden {
+.search__IsVisible.hidden {
   visibility: hidden;
   opacity: 0;
 }
 
-.search-filter__isVisible.visible {
+.search__IsVisible.visible {
   visibility: visible;
   opacity: 1;
 }
+
+.column-operation {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.column-operation__hidden {
+  opacity: 0;
+}
+
+.column-operation__visible {
+  opacity: 1;
+}
+
