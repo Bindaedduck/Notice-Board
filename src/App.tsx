@@ -1,5 +1,6 @@
-import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker } from 'antd';
-import type { TableColumnsType, TableProps, GetProps  } from 'antd';
+import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker, Breadcrumb, Menu, theme } from 'antd';
+import type { TableColumnsType, TableProps, GetProps, MenuProps  } from 'antd';
+import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import './App.css';
@@ -8,7 +9,7 @@ import { useSelector } from 'react-redux';
 
 //and design 관련
 const { Search } = Input;
-const { Header, Footer, Content } = Layout;
+const { Header, Footer, Content, Sider } = Layout;
 type SearchProps = GetProps<typeof Input.Search>;
 
 interface DataType {
@@ -22,6 +23,30 @@ interface DataType {
   startDateTime: Date;
   endDateTime: Date;
 }
+
+const topItems: MenuProps['items'] = ['1', '2', '3'].map((key) => ({
+  key,
+  label: `nav ${key}`,
+}));
+
+const sideItems: MenuProps['items'] = [UserOutlined, LaptopOutlined, NotificationOutlined].map(
+  (icon, index) => {
+    const key = String(index + 1);
+
+    return {
+      key: `sub${key}`,
+      icon: React.createElement(icon),
+      label: `subnav ${key}`,
+      children: Array.from({ length: 4 }).map((_, j) => {
+        const subKey = index * 4 + j + 1;
+        return {
+          key: subKey,
+          label: `option${subKey}`,
+        };
+      }),
+    };
+  },
+);
 
 const dateFormat = 'YYYY-MM-DD';
 dayjs.extend(customParseFormat);
@@ -110,40 +135,16 @@ const columns: TableColumnsType<DataType> = [
   },
 ];
 
-// const data = [
-//   {
-//     key: '1',
-//     name: 'John Brown',
-//     age: 32,
-//     address: 'New York No. 1 Lake Park',
-//   },
-//   {
-//     key: '2',
-//     name: 'Jim Green',
-//     age: 42,
-//     address: 'London No. 1 Lake Park',
-//   },
-//   {
-//     key: '3',
-//     name: 'Joe Black',
-//     age: 32,
-//     address: 'Sydney No. 1 Lake Park',
-//   },
-//   {
-//     key: '4',
-//     name: 'Jim Red',
-//     age: 32,
-//     address: 'London No. 2 Lake Park',
-//   },
-// ];
-
 function App() {
-  const[showSearch, setShowSearch] = useState(false); 
+  const[showSearchFilter, setShowSearchFilter] = useState(false); 
+  const searchFilterIsVisible = `search-filter__isVisible ${ showSearchFilter? 'visible' : 'hidden'}`;
   const tableRow = useSelector((state) => { return state.tableRow})
-  
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   const onSwitchChange = () => {
-    setShowSearch(!showSearch);
+    setShowSearchFilter(!showSearchFilter);
   };
 
   const onTableChange: TableProps<DataType>['onChange'] = (pagination, filters, sorter, extra) => {
@@ -153,59 +154,80 @@ function App() {
   const onSearch: SearchProps['onSearch'] = (value, _e, info) => console.log(info?.source, value);
 
   return (
-      <Flex gap="middle" wrap>
-        <Layout className="layout-main-style">
-        <Header className="layout-header-style">
-          <Switch defaultChecked onChange={onSwitchChange} />
-          {showSearch ? 
-            <div style={{display: 'flex', justifyContent: 'center'}}>
-              {/* Req ID Search */}
-              <Search className="search-style"
-                      placeholder="Req ID"
-                      allowClear
-                      enterButton="Search"
-                      size="large"
-                      onSearch={onSearch} />
-              {/* Status Search */}
-              <Search className="search-style"
-                      placeholder="Status"
-                      allowClear
-                      enterButton="Search"
-                      size="large"
-                      onSearch={onSearch} />
-              {/* File Name Search */}
-              <Search className="search-style"
-                      placeholder="File Name"
-                      allowClear
-                      enterButton="Search"
-                      size="large"
-                      onSearch={onSearch} />
-              {/* Start Date Search */}
-              <DatePicker className="search-style"
-                          defaultValue={dayjs('2025-12-10', dateFormat)}
-                          minDate={dayjs('2023-01-01', dateFormat)}
-                          maxDate={dayjs('2025-06-30', dateFormat)} />
-              {/* End Date Search */}
-              <DatePicker className="search-style"
-                          defaultValue={dayjs('2025-12-10', dateFormat)}
-                          minDate={dayjs('2023-01-01', dateFormat)}
-                          maxDate={dayjs('2025-06-30', dateFormat)} />
-            </div>
-          : null}
-        </Header>
-        <Content className="layout-content-style">
-          <Table<DataType> 
-                columns={columns}
-                dataSource={tableRow}
-                // onChange={onTableChange}
-                scroll={{ y: '75vh', x: '100%' }}
-                showSorterTooltip={{ target: 'sorter-icon' }} /> 
-        </Content>
-        <Footer className="layout-footer-style">
-          <FloatButton onClick={() => console.log('onClick')} />
-        </Footer>
+        <Layout>
+          {/* Header */}
+          <Header className="header">
+            <Menu className="header__menu"
+              theme="dark"
+              mode="horizontal"
+              defaultSelectedKeys={['1']}
+              items={topItems} />
+          </Header>
+
+          {/* Content */}
+          <div style={{ padding: '0 48px' }}>
+            <Breadcrumb className="breadcrumb"
+              items={[{ title: 'Home' }, { title: 'List' }, { title: 'App' }]} />
+
+            <Layout style={{ padding: '24px 0', background: colorBgContainer, borderRadius: borderRadiusLG }}>
+              {/* Sider */}
+              <Sider style={{ background: colorBgContainer }} width={200}>
+                <Menu className="sider__menu"
+                  mode="inline"
+                  defaultSelectedKeys={['1']}
+                  defaultOpenKeys={['sub1']}
+                  items={sideItems} />
+              </Sider>
+
+              <Content className="content">
+                <div style={{display: 'flex'}}>
+                  {/* Search */}
+                    <div className={searchFilterIsVisible}>
+                      {/* Req ID search */}
+                      <Search className="search-filter"
+                              placeholder="Req ID"
+                              allowClear
+                              enterButton="Search"
+                              size="large"
+                              onSearch={onSearch} />
+                      {/* Status search */}
+                      <Search className="search-filter"
+                              placeholder="Status"
+                              allowClear
+                              enterButton="search"
+                              size="large"
+                              onSearch={onSearch} />
+                      {/* Start Date search */}
+                      <DatePicker className="search-filter__date"
+                                  defaultValue={dayjs('2025-12-10', dateFormat)}
+                                  minDate={dayjs('2023-01-01', dateFormat)}
+                                  maxDate={dayjs('2025-06-30', dateFormat)} />
+                      {/* End Date search */}
+                      <DatePicker className="search-filter__date"
+                                  defaultValue={dayjs('2025-12-10', dateFormat)}
+                                  minDate={dayjs('2023-01-01', dateFormat)}
+                                  maxDate={dayjs('2025-06-30', dateFormat)} />
+                    </div>
+                  {/* Search filter switch */}
+                  <Switch  className="switch" onChange={onSwitchChange} />
+                </div>
+                
+                {/* Table */}
+                <Table<DataType> 
+                    columns={columns}
+                    dataSource={tableRow}
+                    // onChange={onTableChange}
+                    // scroll={{ y: '60vh' }}
+                    showSorterTooltip={{ target: 'sorter-icon' }} /> 
+              </Content>
+            </Layout>
+          </div>
+
+          {/* Footer */}
+          <Footer className="footer">
+            <FloatButton onClick={() => console.log('onClick')} />
+          </Footer>
         </Layout>
-      </Flex>
   )
 }
 
