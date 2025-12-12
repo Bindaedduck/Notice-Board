@@ -1,4 +1,4 @@
-import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker, Breadcrumb, Menu, theme, Checkbox, Popconfirm, Button } from 'antd';
+import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker, Breadcrumb, Menu, theme, Checkbox, Popconfirm, Button, Space } from 'antd';
 import type { TableColumnsType, TableProps, GetProps, MenuProps  } from 'antd';
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -7,6 +7,7 @@ import './App.css';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { chaneTableRow } from "./store/tableStore.tsx"
+import type { RootState } from '@reduxjs/toolkit/query';
 
 //and design 관련
 const { Search } = Input;
@@ -56,9 +57,11 @@ const sideItems: MenuProps['items'] = [UserOutlined, LaptopOutlined, Notificatio
 function App() {
   const[showSearchFilter, setShowSearchFilter] = useState(false); 
   const[showOperation, setShowOperation] = useState(false);
+  const[selectedRowsKey, setSelectedRowsKey] = useState<string[]>([]);
   const dispatch = useDispatch();
-  const searchIsVisible = `search__IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`;
+  const searchIsVisible = `search--IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`;
   const tableRow = useSelector((state) => { return state.tableRow})
+  //const selectedRowsKey = [];
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -74,16 +77,29 @@ function App() {
   const handleDelete = (key: React.Key) => {
     const newData = tableRow.filter((item) => item.key !== key);
     dispatch(chaneTableRow(newData));
+    setShowOperation(!showOperation);
   };
 
   const rowSelection: TableProps<DataType>['rowSelection'] = {
     onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-      setShowOperation(!showOperation);
+      //setShowOperation(!showOperation);
+      //const keys = selectedRowKeys.map(key => String(key));.
     },
-    // getCheckboxProps: (record: DataType) => ({
-    //   disabled: record.reqId === 'Disabled User', // Column configuration not to be checked
-    //   name: record.reqId,
-    // }),
+    
+    onSelect: (record, selected, selectedRows, nativeEvent) => {
+      console.log(1);
+      //삭제를 하고 다시 선택을 할때 key값을 받아오지 못한다.
+      console.log(selectedRows);
+      const keys = selectedRows.map(e => String(e.key));
+      console.log(keys);
+      setSelectedRowsKey(keys);
+
+      
+
+      
+      if(selectedRows.length === 0 || !showOperation)
+      setShowOperation(!showOperation);
+    }
   };
 
   const columns: TableColumnsType<DataType> = [
@@ -133,20 +149,20 @@ function App() {
   ];
 
   const extraColumn = {
-    className: showOperation ? "column-operation__visible" : "column-operation__hidden",
     title: 'Operation',
     dataIndex: 'operation',
-    render: (_, record) =>
-      tableRow.length >= 1 ? (
-        <div style={{ display:"flex", gap:"5px" }}>
+    render: (_: any, record: DataType,index) => {
+      return (selectedRowsKey.includes(String(record.key)) ? (
+        <Space size="middle">
           <Button color="primary" variant="outlined" onClick={() => handleDelete(record.key)}>Edit</Button>
 
 
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
             <Button danger>Delete</Button>
           </Popconfirm>
-        </div>
-      ) : null,
+        </Space>
+      ) : <div></div>)
+    }
   }
 
   //체크버튼을 누른 상태면 Operation컬럼 보여주기
@@ -197,11 +213,11 @@ function App() {
                               size="large"
                               onSearch={onSearch} />
                       {/* Start Date search */}
-                      <DatePicker className="search--date"
+                      <DatePicker className="search__date"
                                   minDate={dayjs('2023-01-01', dateFormat)}
                                   maxDate={dayjs('2025-06-30', dateFormat)} />
                       {/* End Date search */}
-                      <DatePicker className="search--date"
+                      <DatePicker className="search__date"
                                   minDate={dayjs('2023-01-01', dateFormat)}
                                   maxDate={dayjs('2025-06-30', dateFormat)} />
                     </div>

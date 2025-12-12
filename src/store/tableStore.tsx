@@ -67,4 +67,5 @@ export default configureStore({
     }
 })
 
-export let { chaneTableRow } = tableRow.actions
+export let { chaneTableRow } = tableRow.actions;
+
