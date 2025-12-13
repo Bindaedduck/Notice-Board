@@ -1,8 +1,19 @@
-import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
-const tableRow = createSlice({
-    name : 'talbeRow',
-    initialState :  [
+export interface NoticeBoard {
+    key: React.Key;
+    reqId: string;
+    bizCLS: string;
+    idpType: string;
+    fileName: string;
+    filePath: string;
+    page: number,
+    status: string;
+    startDateTime: Date;
+    endDateTime: Date;
+}
+
+const initialState: NoticeBoard[] = [
         {key:"1",reqId:"01KC3CFHYQNXRTR0VAQC0NT7AS",bizCLS:"Glennie",idpType:"ur",fileName:"IpsumDolor.avi",filePath:"0x2fe70d3e7bf5270928326fafec8a8b03b9537013",page:64,status:"3XL",startDateTime:"2025-01-03",endDateTime:"2025-08-01"},
         {key:"2",reqId:"01KC3CFHZHZVJGCTT3ESTPBGZ0",bizCLS:"Colas",idpType:"br",fileName:"LoremVitaeMattis.tiff",filePath:"0xbb355027d1e3d5376882484d3854609501bb05af",page:38,status:"3XL",startDateTime:"2025-05-22",endDateTime:"2025-07-19"},
         {key:"3",reqId:"01KC3CFHZKEFZKG16RJQC7QYZ9",bizCLS:"Fair",idpType:"lb",fileName:"In.avi",filePath:"0x9a0bba6d0321c053196164fce48b571dabbe6fc6",page:100,status:"XS",startDateTime:"2025-04-03",endDateTime:"2025-10-07"},
@@ -53,7 +64,11 @@ const tableRow = createSlice({
         {key:"48",reqId:"01KC3CFJ13QKP70YHEZNRERYCH",bizCLS:"Bunni",idpType:"mh",fileName:"EgetVulputateUt.tiff",filePath:"0x11a4a68e454676e42f271f06186c152174d0320e",page:2,status:"XS",startDateTime:"2025-03-18",endDateTime:"2025-08-05"},
         {key:"49",reqId:"01KC3CFJ14RQNSYV24SB15YH6Z",bizCLS:"Keriann",idpType:"ln",fileName:"Auctor.ppt",filePath:"0x809ab42c9fc1a999f7724d917609241d2e75c0d7",page:39,status:"3XL",startDateTime:"2025-01-29",endDateTime:"2025-11-12"},
         {key:"50",reqId:"01KC3CFJ15EZJSX7F6EVCC6A9T",bizCLS:"De",idpType:"wo",fileName:"Quis.txt",filePath:"0x702992cf48582488f0629f456b6c8728c83efdd4",page:13,status:"S",startDateTime:"2025-02-01",endDateTime:"2025-07-15"}
-    ],
+];
+
+const noticeBoardSlice = createSlice({
+    name : 'talbeRow',
+    initialState : initialState,
     reducers : {
         chaneTableRow(state, action) {
             return state = action.payload;
@@ -61,11 +76,6 @@ const tableRow = createSlice({
     }
 })
 
-export default configureStore({
-    reducer: {
-        tableRow : tableRow.reducer
-    }
-})
+export const { chaneTableRow } = noticeBoardSlice.actions;
 
-export let { chaneTableRow } = tableRow.actions;
-
+export default noticeBoardSlice.reducer;
