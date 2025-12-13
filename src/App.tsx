@@ -1,13 +1,11 @@
-import { Table, FloatButton, Switch, Input, Flex, Layout, DatePicker, Breadcrumb, Menu, theme, Checkbox, Popconfirm, Button, Space } from 'antd';
-import type { TableColumnsType, TableProps, GetProps, MenuProps  } from 'antd';
+import { FloatButton, Switch, Input, Layout, DatePicker, Breadcrumb, Menu, theme } from 'antd';
+import type { GetProps, MenuProps  } from 'antd';
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import './App.css';
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { type RootState } from './store.tsx';
-import { chaneTableRow, type NoticeBoard } from './features/noticeBoard/noticeBoardSlice.tsx';
+import Table from './components/Table.tsx';
 
 //and design 관련
 const { Search } = Input;
@@ -42,12 +40,8 @@ const sideItems: MenuProps['items'] = [UserOutlined, LaptopOutlined, Notificatio
 );
 
 function App() {
-  const[showSearchFilter, setShowSearchFilter] = useState(false); 
-  const[showOperation, setShowOperation] = useState(false);
-  const[selectedRowsKey, setSelectedRowsKey] = useState<React.Key[]>([]);
-  const dispatch = useDispatch();
-  const searchIsVisible = `search--IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`;
-  const tableRow = useSelector((state: RootState) => { return state.noticeBoard})
+  const[showSearchFilter, setShowSearchFilter] = useState(false)
+  const searchIsVisible = `search--IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`
   
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -55,97 +49,11 @@ function App() {
 
   const onSwitchChange = () => {
     setShowSearchFilter(!showSearchFilter);
-  };
+  }
 
   const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
     console.log(info?.source, value);
-  };
-
-  const handleDelete = (key: React.Key) => {
-    const newtableRow = tableRow.filter((item: any) => item.key !== key);
-    
-    dispatch(chaneTableRow(newtableRow));
-    setShowOperation(!showOperation);
-    setSelectedRowsKey([]);
-  };
-
-  const rowSelection: TableProps<NoticeBoard>['rowSelection'] = {
-    selectedRowKeys: selectedRowsKey,
-
-    onChange: (SelectedRowKeys: React.Key[]) => {
-      const uniformKeys = SelectedRowKeys.map(key => String(key)); 
-      setSelectedRowsKey(uniformKeys);
-
-      if(SelectedRowKeys.length === 0 || !showOperation)
-          setShowOperation(!showOperation);
-    },
-   };
-
-  const columns: TableColumnsType<NoticeBoard> = [
-    {
-      title: 'Req Id',
-      dataIndex: 'reqId',
-      showSorterTooltip: { target: 'full-header' },
-    },
-    {
-      title: 'Biz CLS',
-      dataIndex: 'bizCLS',
-      sorter: (a, b) => a.bizCLS.localeCompare(b.bizCLS),
-    },
-    {
-      title: 'Idp Type',
-      dataIndex: 'idpType',
-      sorter: (a, b) => a.idpType.localeCompare(b.idpType),
-    },
-    {
-      title: 'File Name',
-      dataIndex: 'fileName',
-    },
-    {
-      title: 'File Path',
-      dataIndex: 'filePath',
-    },
-    {
-      title: 'Page',
-      dataIndex: 'page',
-      sorter: (a, b) => a.page - b.page,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      sorter: (a, b) => a.status.localeCompare(b.status),
-    },
-    {
-      title: 'Start Date Time',
-      dataIndex: 'startDateTime',
-      sorter: (a, b) => dayjs(a.startDateTime).valueOf() - dayjs(b.startDateTime).valueOf(),
-    },
-    {
-      title: 'End Date Time',
-      dataIndex: 'endDateTime',
-      sorter: (a, b) => dayjs(a.endDateTime).valueOf() - dayjs(b.endDateTime).valueOf(),
-    }
-  ];
-
-  const extraColumn = {
-    title: 'Operation',
-    dataIndex: 'operation',
-    render: (_: any, record: NoticeBoard) => {
-      return (selectedRowsKey.includes(record.key) ? (
-        <Space size="middle">
-          <Button color="primary" variant="outlined" onClick={() => handleDelete(record.key)}>Edit</Button>
-
-
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
-            <Button danger>Delete</Button>
-          </Popconfirm>
-        </Space>
-      ) : <div></div>)
-    }
   }
-
-  //체크버튼을 누른 상태면 Operation컬럼 보여주기
-  const finalColumns = showOperation ? [...columns, extraColumn] : columns;
 
   return (
         <Layout>
@@ -204,13 +112,7 @@ function App() {
                   <Switch  className="switch" onChange={onSwitchChange} />
                 </div>
                 
-                {/* Table */}
-                <Table<NoticeBoard> 
-                    rowSelection={{ type: Checkbox, ...rowSelection }}
-                    columns={finalColumns}
-                    dataSource={tableRow}
-                    scroll={{ y: '60vh' }}
-                    showSorterTooltip={{ target: 'sorter-icon' }} /> 
+                <Table />
               </Content>
             </Layout>
           </div>
@@ -223,5 +125,4 @@ function App() {
   )
 }
 
-export default App
-
+export default App;
