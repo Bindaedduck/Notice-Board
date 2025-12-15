@@ -17,35 +17,41 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
 
 function Table() { 
     const[selectedRowsKey, setSelectedRowsKey] = useState<React.Key[]>([]);
+    const[selectedReqId, setSelectedReqId] = useState<string[]>([]);
     const[showOperation, setShowOperation] = useState(false);
-    const[editingKey, setEditingKey] = useState<React.Key>('');
+    const[editingReqId, setEditingReqId] = useState('');
     const tableRow = useSelector((state: RootState) => { return state.noticeBoard});
     const dispatch = useDispatch();
-    
+
     const [form] = Form.useForm();
-    const isEditing = (record: NoticeBoard) => record.key == editingKey;
+    const isEditing = (record: NoticeBoard) => record.reqId == editingReqId;
 
-    const cancel = () => { setEditingKey(''); };
+    const cancel = () => { setEditingReqId(''); };
 
-    const rowDelete = (key: React.Key) => {
-        const newtableRow = tableRow.filter((item: any) => item.key !== key);
+    const rowDelete = (reqId: string) => {
+        const newtableRow = tableRow.filter((item: any) => item.reqId !== reqId);
         
         dispatch(chaneTableRow(newtableRow));
         setShowOperation(!showOperation);
         setSelectedRowsKey([]);
     };
 
-    const edit = (record: Partial<NoticeBoard> & { key: React.Key}) => {
-        form.setFieldsValue({ bizCLS: '', idpType: '', status: '',...record});
-        setEditingKey(record.key);
+    const edit = (record: Partial<NoticeBoard> & { reqId: string}, option: string) => {
+
+        if(option === 'update')
+            form.setFieldsValue({ bizCLS: '', idpType: '', status: '',...record});
+        else if(option === 'add')
+            form.setFieldsValue({ reqId: '', bizCLS: '', idpType: '', fileName: '', filePath: '', page: '', status: '', startDateTime: '', endDateTime: '', ...record});
+
+        setEditingReqId(record.reqId);
     }
 
-    const save = async (key: React.Key) => {
+    const save = async (reqId: string) => {
         try {
             const row = (await form.validateFields()) as NoticeBoard;
 
             const newtableRow = [...tableRow];
-            const index = newtableRow.findIndex((item) => key === item.key);
+            const index = newtableRow.findIndex((item) => item.reqId === reqId);
             if (index > -1) {
                 const item = newtableRow[index];
                 newtableRow.splice(index, 1, {
@@ -53,11 +59,11 @@ function Table() {
                 ...row,
                 });
                 dispatch(chaneTableRow(newtableRow));
-                setEditingKey('');
+                setEditingReqId('');
             } else {
                 newtableRow.push(row);
                 dispatch(chaneTableRow(newtableRow));
-                setEditingKey('');
+                setEditingReqId('');
             }
         } catch (errInfo) {
             console.log('Validate Failed:', errInfo);
@@ -124,19 +130,19 @@ function Table() {
         editable: false,
         render: (_: any, record: NoticeBoard) => {
             const eidtable = isEditing(record);
-            return (selectedRowsKey.includes(record.key) ? 
+            return (selectedReqId.includes(record.reqId) ? 
                     (eidtable ? (
                         <Space size="small">
-                            <Popconfirm title="수정하시겠습니까?" onConfirm={() => save(record.key)}>
+                            <Popconfirm title="수정하시겠습니까?" onConfirm={() => save(record.reqId)}>
                                 <Button color="primary" variant="outlined">Save</Button>
                             </Popconfirm>
                             <Button color="primary" onClick={() => cancel()}>Cancel</Button> 
                         </Space>
                     ) : (
                         <Space size="middle">
-                        <Button color="primary" variant="outlined" disabled={editingKey !== ''} onClick={() => edit(record)}>Edit</Button>
-                        <Popconfirm title="정말 삭제하시겠습니까?" onConfirm={() => rowDelete(record.key)}>
-                            <Button danger disabled={editingKey !== ''}>Delete</Button>
+                        <Button color="primary" variant="outlined" disabled={editingReqId !== ''} onClick={() => edit(record,'update')}>Edit</Button>
+                        <Popconfirm title="정말 삭제하시겠습니까?" onConfirm={() => rowDelete(record.reqId)}>
+                            <Button danger disabled={editingReqId !== ''}>Delete</Button>
                         </Popconfirm>
                         </Space>
                     )):<div></div>)
@@ -181,10 +187,12 @@ function Table() {
     const rowSelection: TableProps<NoticeBoard>['rowSelection'] = {
         selectedRowKeys: selectedRowsKey,
 
-        onChange: (SelectedRowKeys: React.Key[]) => {
+        onChange: (SelectedRowKeys: React.Key[], selection) => {
             const uniformKeys = SelectedRowKeys.map(key => String(key)); 
-            
+            const uniformReqId = selection.map(item => item.reqId); 
+
             setSelectedRowsKey(uniformKeys);
+            setSelectedReqId(uniformReqId); 
 
             if(SelectedRowKeys.length === 0 || !showOperation)
                 setShowOperation(!showOperation);
@@ -209,6 +217,7 @@ function Table() {
     return (
         <Form form={form} component={false}>
             <AntdTable<NoticeBoard>
+                rowKey="reqId"
                 components={{
                     body: { cell: EditableCell },
                 }}
