@@ -1,12 +1,10 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import noticeBoardReducer from './features/noticeBoard/noticeBoardSlice.tsx'
-
-const rootReducer = combineReducers({
-    noticeBoard: noticeBoardReducer 
-})
+import { configureStore } from "@reduxjs/toolkit";
+import noticeBoardReducer from './features/noticeBoard/noticeBoardSlice.tsx';
 
 const store = configureStore({
-    reducer: rootReducer
+    reducer: {
+        noticeBoard: noticeBoardReducer
+    }
 })
 
 export type RootState = ReturnType<typeof store.getState>;

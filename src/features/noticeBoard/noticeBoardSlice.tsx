@@ -9,8 +9,8 @@ export interface NoticeBoard {
     filePath: string;
     page: number,
     status: string;
-    startDateTime: Date;
-    endDateTime: Date;
+    startDateTime: string;
+    endDateTime: string;
 }
 
 const initialState: NoticeBoard[] = [
