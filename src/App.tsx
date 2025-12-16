@@ -1,4 +1,4 @@
-import { FloatButton, Switch, Input, Layout, DatePicker, Breadcrumb, Menu, theme } from 'antd';
+import { Switch, Input, Layout, DatePicker, Breadcrumb, Menu, theme } from 'antd';
 import type { GetProps, MenuProps  } from 'antd';
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -118,9 +118,7 @@ function App() {
           </div>
 
           {/* Footer */}
-          <Footer style = {{background: borderRadiusLG, textAlign: "center"}}>
-            <FloatButton onClick={() => console.log('onClick')} />
-          </Footer>
+          <Footer style = {{background: borderRadiusLG, textAlign: "center"}}/>
         </Layout>
   )
 }

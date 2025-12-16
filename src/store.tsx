@@ -3,7 +3,7 @@ import noticeBoardReducer from './features/noticeBoard/noticeBoardSlice.tsx';
 
 const store = configureStore({
     reducer: {
-        noticeBoard: noticeBoardReducer
+        noticeBoard: noticeBoardReducer,
     }
 })
 

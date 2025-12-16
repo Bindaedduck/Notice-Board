@@ -69,12 +69,12 @@ const noticeBoardSlice = createSlice({
     name : 'talbeRow',
     initialState : initialState,
     reducers : {
-        chaneTableRow(state, action) {
+        changeTableRow(state, action) {
             return state = action.payload;
         }
     }
 })
 
-export const { chaneTableRow } = noticeBoardSlice.actions;
+export const { changeTableRow } = noticeBoardSlice.actions;
 
 export default noticeBoardSlice.reducer;

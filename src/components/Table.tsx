@@ -1,9 +1,9 @@
-import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber  } from 'antd';
+import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, message } from 'antd';
 import type { TableProps } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from 'dayjs';
-import { type NoticeBoard, chaneTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
+import { type NoticeBoard, changeTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
 import { type RootState } from '../store.tsx';
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
@@ -20,24 +20,82 @@ function Table() {
     const[selectedReqId, setSelectedReqId] = useState<string[]>([]);
     const[showOperation, setShowOperation] = useState(false);
     const[editingReqId, setEditingReqId] = useState('');
+    const[isAdd, setIsAdd] = useState(true);
     const tableRow = useSelector((state: RootState) => { return state.noticeBoard});
     const dispatch = useDispatch();
 
     const [form] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+
     const isEditing = (record: NoticeBoard) => record.reqId == editingReqId;
 
-    const cancel = () => { setEditingReqId(''); };
+    const cancel = (isAdd?: boolean) => { 
+        if(!isAdd){
+            const newtableRow = tableRow.filter((item: any) => item.reqId !== selectedReqId[0]);
+            dispatch(changeTableRow(newtableRow));
+            setShowOperation(!showOperation);
+            setSelectedRowsKey([]);
+            setSelectedReqId([]);
+            setIsAdd(!isAdd);
+        }
+        
+        setEditingReqId('');
+    };
 
     const rowDelete = (reqId: string) => {
         const newtableRow = tableRow.filter((item: any) => item.reqId !== reqId);
         
-        dispatch(chaneTableRow(newtableRow));
+        dispatch(changeTableRow(newtableRow));
         setShowOperation(!showOperation);
         setSelectedRowsKey([]);
+        setIsAdd(!isAdd);
     };
 
-    const edit = (record: Partial<NoticeBoard> & { reqId: string}, option: string) => {
-        if(option === 'update'){
+    const rowAdd = () =>{
+        if(selectedRowsKey.length > 0){
+            messageApi.open({
+                type: 'warning',
+                content: '체크된 목록이 있어 추가작업이 불가능합니다.',
+            });
+            return;
+        }
+
+        if(!isAdd){
+            messageApi.open({
+                type: 'warning',
+                content: '이미 추가중인 작업이 있습니다.',
+            });
+            return;
+        }
+
+        if(isAdd){
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const array = new Uint32Array(26);
+            crypto.getRandomValues(array);
+            const newReqId:string = Array.from(array, x => chars[x % chars.length]).join('');
+
+            const newTableRow: NoticeBoard = {
+                reqId:newReqId,
+                bizCLS:"",
+                idpType:"",
+                fileName:"",
+                filePath:"",
+                page:0,
+                status:"",
+                startDateTime:"",
+                endDateTime:""
+            }
+
+            dispatch(changeTableRow([newTableRow,...tableRow]));
+            edit(newTableRow, 'add');
+            setShowOperation(!showOperation);
+            setSelectedReqId([newReqId]);
+            setIsAdd(!isAdd);
+        }
+    };
+
+    const edit = (record: Partial<NoticeBoard> & { reqId: string}, action: string) => {
+        if(action === 'update'){
            const editColumns = columns.map(item => {
                 let editable = false;
 
@@ -54,8 +112,23 @@ function Table() {
            setColumns(editColumns);
            form.setFieldsValue({ bizCLS: '', idpType: '', status: '',...record});
         }    
-        else if(option === 'add')
-         return;
+        else if(action === 'add'){
+            const editColumns = columns.map(item => {
+                let editable = false;
+
+                if (item.title === 'Req Id' ) 
+                    editable = false;
+                else
+                    editable = true; 
+                
+                return{
+                    ...item,
+                    editable: editable,
+                }
+            })
+           setColumns(editColumns);
+           form.setFieldsValue({...record});
+        }
         
         setEditingReqId(record.reqId);
     };
@@ -72,12 +145,18 @@ function Table() {
                 ...item,
                 ...row,
                 });
-                dispatch(chaneTableRow(newtableRow));
+                dispatch(changeTableRow(newtableRow));
                 setEditingReqId('');
+                setShowOperation(!showOperation);
+                setSelectedRowsKey([]);
+                setIsAdd(!isAdd);
             } else {
                 newtableRow.push(row);
-                dispatch(chaneTableRow(newtableRow));
+                dispatch(changeTableRow(newtableRow));
                 setEditingReqId('');
+                setShowOperation(!showOperation);
+                setSelectedRowsKey([]);
+                setIsAdd(!isAdd);
             }
         } catch (errInfo) {
             console.log('Validate Failed:', errInfo);
@@ -210,9 +289,11 @@ function Table() {
             setSelectedRowsKey(uniformKeys);
             setSelectedReqId(uniformReqId); 
 
-            if(SelectedRowKeys.length === 0 || !showOperation)
+            if(SelectedRowKeys.length === 0 || !showOperation){
                 setShowOperation(!showOperation);
-        },
+                setIsAdd(!isAdd)
+            }
+        }
     };
 
     const mergedColumns: TableProps<NoticeBoard>['columns'] = finalColumns.map((col) => {
@@ -231,18 +312,23 @@ function Table() {
     });
 
     return (
-        <Form form={form} component={false}>
-            <AntdTable<NoticeBoard>
-                rowKey="reqId"
-                components={{
-                    body: { cell: EditableCell },
-                }}
-                rowSelection={{ type: Checkbox, ...rowSelection }}
-                columns={mergedColumns}
-                dataSource={tableRow}
-                scroll={{ y: '60vh' }}
-                showSorterTooltip={{ target: 'sorter-icon' }} />
-        </Form>
+        <div>
+
+            <Form form={form} component={false}>
+                <AntdTable<NoticeBoard>
+                    rowKey="reqId"
+                    components={{
+                        body: { cell: EditableCell },
+                    }}
+                    rowSelection={{ type: Checkbox, ...rowSelection }}
+                    columns={mergedColumns}
+                    dataSource={tableRow}
+                    scroll={{ y: '60vh' }}
+                    showSorterTooltip={{ target: 'sorter-icon' }} />
+            </Form>
+            {contextHolder}
+            <FloatButton onClick={rowAdd}  />
+        </div>
     );
 }
 
