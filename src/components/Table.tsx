@@ -37,14 +37,28 @@ function Table() {
     };
 
     const edit = (record: Partial<NoticeBoard> & { reqId: string}, option: string) => {
+        if(option === 'update'){
+           const editColumns = columns.map(item => {
+                let editable = false;
 
-        if(option === 'update')
-            form.setFieldsValue({ bizCLS: '', idpType: '', status: '',...record});
+                if (item.title === 'Biz CLS' || item.title === 'Idp Type' || item.title === 'Status') 
+                    editable = true;
+                else
+                    editable = false; 
+                
+                return{
+                    ...item,
+                    editable: editable,
+                }
+            })
+           setColumns(editColumns);
+           form.setFieldsValue({ bizCLS: '', idpType: '', status: '',...record});
+        }    
         else if(option === 'add')
-            form.setFieldsValue({ reqId: '', bizCLS: '', idpType: '', fileName: '', filePath: '', page: '', status: '', startDateTime: '', endDateTime: '', ...record});
-
+         return;
+        
         setEditingReqId(record.reqId);
-    }
+    };
 
     const save = async (reqId: string) => {
         try {
@@ -70,7 +84,7 @@ function Table() {
         }
     }
 
-    const columns = [
+    const initialColumns = [
         {
             title: 'Req Id',
             dataIndex: 'reqId',
@@ -80,13 +94,13 @@ function Table() {
             title: 'Biz CLS',
             dataIndex: 'bizCLS',
             sorter: (a: any, b: any) => a.bizCLS.localeCompare(b.bizCLS),
-            editable: true,
+            editable: false,
         },
         {
             title: 'Idp Type',
             dataIndex: 'idpType',
             sorter: (a: any, b: any) => a.idpType.localeCompare(b.idpType),
-            editable: true,
+            editable: false,
         },
         {
             title: 'File Name',
@@ -108,7 +122,7 @@ function Table() {
             title: 'Status',
             dataIndex: 'status',
             sorter: (a :any, b :any) => a.status.localeCompare(b.status),
-            editable: true,
+            editable: false,
         },
         {
             title: 'Start Date Time',
@@ -123,6 +137,8 @@ function Table() {
             editable: false,
         }
     ];
+
+    const[columns, setColumns] = useState(initialColumns);
 
     const extraColumn = {
         title: 'Operation',
