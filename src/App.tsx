@@ -1,18 +1,15 @@
-import { Switch, Input, Layout, DatePicker, Breadcrumb, Menu, theme } from 'antd';
-import type { GetProps, MenuProps  } from 'antd';
+import {  Layout, Breadcrumb, Menu, theme } from 'antd';
+import type {  MenuProps  } from 'antd';
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import './App.css';
-import React, { useState } from 'react';
+import React from 'react';
 import Table from './components/Table.tsx';
 
 //and design 관련
-const { Search } = Input;
 const { Header, Footer, Content, Sider } = Layout;
-type SearchProps = GetProps<typeof Input.Search>;
 
-const dateFormat = 'YYYY-MM-DD';
 dayjs.extend(customParseFormat);
 
 const topItems: MenuProps['items'] = ['1', '2', '3'].map((key) => ({
@@ -40,20 +37,10 @@ const sideItems: MenuProps['items'] = [UserOutlined, LaptopOutlined, Notificatio
 );
 
 function App() {
-  const[showSearchFilter, setShowSearchFilter] = useState(false)
-  const searchIsVisible = `search--IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`
   
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-
-  const onSwitchChange = () => {
-    setShowSearchFilter(!showSearchFilter);
-  }
-
-  const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
-      //여기서 찾은거가지고 테이블 Row필터 걸어서 뿌려주면 될 것 같은데
-  }
 
   return (
         <Layout>
@@ -82,36 +69,6 @@ function App() {
               </Sider>
 
               <Content className="content">
-                <div style={{display: 'flex'}}>
-                  {/* Search */}
-                    <div className={searchIsVisible}>
-                      {/* Req ID search */}
-                      <Search className="search"
-                              placeholder="Req ID"
-                              allowClear
-                              enterButton="Search"
-                              size="large"
-                              onSearch={onSearch} />
-                      {/* Status search */}
-                      <Search className="search"
-                              placeholder="Status"
-                              allowClear
-                              enterButton="search"
-                              size="large"
-                              onSearch={onSearch} />
-                      {/* Start Date search */}
-                      <DatePicker className="search__date"
-                                  minDate={dayjs('2023-01-01', dateFormat)}
-                                  maxDate={dayjs('2025-06-30', dateFormat)} />
-                      {/* End Date search */}
-                      <DatePicker className="search__date"
-                                  minDate={dayjs('2023-01-01', dateFormat)}
-                                  maxDate={dayjs('2025-06-30', dateFormat)} />
-                    </div>
-                  {/* Search filter switch */}
-                  <Switch  className="switch" onChange={onSwitchChange} />
-                </div>
-                
                 <Table />
               </Content>
             </Layout>

@@ -1,10 +1,18 @@
-import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, message } from 'antd';
-import type { TableProps } from 'antd';
+import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, message, Switch, DatePicker } from 'antd';
+import type { TableProps, GetProps } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from 'dayjs';
-import { type NoticeBoard, changeTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
+import { type NoticeBoard, changeTableRow, initialTableRow, filterTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
 import { type RootState } from '../store.tsx';
+import '../App.css';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+const { Search } = Input;
+type SearchProps = GetProps<typeof Input.Search>;
+
+const dateFormat = 'YYYY-MM-DD';
+dayjs.extend(customParseFormat);
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
     editing: boolean;
@@ -20,12 +28,39 @@ function Table() {
     const[selectedReqId, setSelectedReqId] = useState<string[]>([]);
     const[showOperation, setShowOperation] = useState(false);
     const[editingReqId, setEditingReqId] = useState('');
+    const[showSearchFilter, setShowSearchFilter] = useState(false)
     const[isAdd, setIsAdd] = useState(true);
     const tableRow = useSelector((state: RootState) => { return state.noticeBoard});
     const dispatch = useDispatch();
 
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+
+    const onSwitchChange = () => {
+        setShowSearchFilter(!showSearchFilter);
+    }
+
+    const onSearch: SearchProps['onSearch'] = (column: string, value: string) => {   
+        
+
+        if(value){
+            // let newtableRow: NoticeBoard[] = [];
+
+            // if(column === 'reqId')
+            //      newtableRow = tableRow.filter((item: any) => (item.reqId).includes(value));   
+            // else if(column === 'status')
+            //      newtableRow = tableRow.filter((item: any) => item.status === value);
+
+            // dispatch(changeTableRow(newtableRow));
+
+            const actionPayload = {id: column, keyword: value};
+            dispatch(filterTableRow(actionPayload));
+        }else{
+            dispatch(initialTableRow());
+        }
+    }
+
+    const searchIsVisible = `search--IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`
 
     const isEditing = (record: NoticeBoard) => record.reqId == editingReqId;
 
@@ -313,7 +348,35 @@ function Table() {
 
     return (
         <div>
-
+                <div style={{display: 'flex'}}>
+                  {/* Search */}
+                    <div className={searchIsVisible}>
+                      {/* Req ID search */}
+                      <Search className="search"
+                              placeholder="Req ID"
+                              allowClear
+                              enterButton="Search"
+                              size="large"
+                              onSearch={(value) => onSearch("reqId",value)} />
+                      {/* Status search */}
+                      <Search className="search"
+                              placeholder="Status"
+                              allowClear
+                              enterButton="search"
+                              size="large"
+                              onSearch={(value) => onSearch("status",value)} />
+                      {/* Start Date search */}
+                      <DatePicker className="search__date"
+                                  minDate={dayjs('2023-01-01', dateFormat)}
+                                  maxDate={dayjs('2025-06-30', dateFormat)} />
+                      {/* End Date search */}
+                      <DatePicker className="search__date"
+                                  minDate={dayjs('2023-01-01', dateFormat)}
+                                  maxDate={dayjs('2025-06-30', dateFormat)} />
+                    </div>
+                  {/* Search filter switch */}
+                  <Switch  className="switch" onChange={onSwitchChange} />
+                </div>
             <Form form={form} component={false}>
                 <AntdTable<NoticeBoard>
                     rowKey="reqId"

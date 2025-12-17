@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface NoticeBoard {
     reqId: string;
@@ -10,6 +10,11 @@ export interface NoticeBoard {
     status: string;
     startDateTime: string;
     endDateTime: string;
+}
+
+interface searchPayload {
+    id: string,
+    keyword: string
 }
 
 const initialState: NoticeBoard[] = [
@@ -71,10 +76,22 @@ const noticeBoardSlice = createSlice({
     reducers : {
         changeTableRow(state, action) {
             return state = action.payload;
+        },
+        initialTableRow(state){
+            return state = initialState;
+        },
+        filterTableRow(state, action: PayloadAction<searchPayload>){
+            const { id, keyword } = action.payload;
+            
+            if(id === "reqId")
+                return state = state.filter((item: any) => (item.reqId).includes(keyword));
+            else if(id === "status")
+                return state = state.filter((item: any) => item.status === keyword);  
         }
+
     }
 })
 
-export const { changeTableRow } = noticeBoardSlice.actions;
+export const { changeTableRow, initialTableRow, filterTableRow } = noticeBoardSlice.actions;
 
 export default noticeBoardSlice.reducer;
