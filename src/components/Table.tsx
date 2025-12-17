@@ -29,14 +29,14 @@ function Table() {
 
     const isEditing = (record: NoticeBoard) => record.reqId == editingReqId;
 
-    const cancel = (isAdd?: boolean) => { 
+    const cancel = (isAdd: boolean) => { 
         if(!isAdd){
             const newtableRow = tableRow.filter((item: any) => item.reqId !== selectedReqId[0]);
             dispatch(changeTableRow(newtableRow));
             setShowOperation(!showOperation);
             setSelectedRowsKey([]);
             setSelectedReqId([]);
-            setIsAdd(!isAdd);
+            setIsAdd(true);
         }
         
         setEditingReqId('');
@@ -48,7 +48,7 @@ function Table() {
         dispatch(changeTableRow(newtableRow));
         setShowOperation(!showOperation);
         setSelectedRowsKey([]);
-        setIsAdd(!isAdd);
+        setIsAdd(true);
     };
 
     const rowAdd = () =>{
@@ -90,7 +90,7 @@ function Table() {
             edit(newTableRow, 'add');
             setShowOperation(!showOperation);
             setSelectedReqId([newReqId]);
-            setIsAdd(!isAdd);
+            setIsAdd(false);
         }
     };
 
@@ -149,14 +149,14 @@ function Table() {
                 setEditingReqId('');
                 setShowOperation(!showOperation);
                 setSelectedRowsKey([]);
-                setIsAdd(!isAdd);
+                setIsAdd(true);
             } else {
                 newtableRow.push(row);
                 dispatch(changeTableRow(newtableRow));
                 setEditingReqId('');
                 setShowOperation(!showOperation);
                 setSelectedRowsKey([]);
-                setIsAdd(!isAdd);
+                setIsAdd(true);
             }
         } catch (errInfo) {
             console.log('Validate Failed:', errInfo);
@@ -231,7 +231,7 @@ function Table() {
                             <Popconfirm title="수정하시겠습니까?" onConfirm={() => save(record.reqId)}>
                                 <Button color="primary" variant="outlined">Save</Button>
                             </Popconfirm>
-                            <Button color="primary" onClick={() => cancel()}>Cancel</Button> 
+                            <Button color="primary" onClick={() => cancel(isAdd)}>Cancel</Button> 
                         </Space>
                     ) : (
                         <Space size="middle">
@@ -291,7 +291,7 @@ function Table() {
 
             if(SelectedRowKeys.length === 0 || !showOperation){
                 setShowOperation(!showOperation);
-                setIsAdd(!isAdd)
+                //setIsAdd(false)
             }
         }
     };

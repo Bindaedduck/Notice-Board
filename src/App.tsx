@@ -52,7 +52,7 @@ function App() {
   }
 
   const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
-    console.log(info?.source, value);
+      //여기서 찾은거가지고 테이블 Row필터 걸어서 뿌려주면 될 것 같은데
   }
 
   return (
