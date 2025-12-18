@@ -1,5 +1,5 @@
-import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, message, Switch, DatePicker, Spin, notification } from 'antd';
-import type { TableProps, GetProps, NotificationArgsProps  } from 'antd';
+import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, Switch, DatePicker, Spin } from 'antd';
+import type { TableProps, GetProps  } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from 'dayjs';
@@ -7,6 +7,8 @@ import { type NoticeBoard, changeTableRow, initialTableRow, filterTableRow } fro
 import { type RootState } from '../store.tsx';
 import '../App.css';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import useNotification from '../hook/useNotification.ts';
+import useMessage from '../hook/useMessage.ts';
 
 const { Search } = Input;
 type SearchProps = GetProps<typeof Input.Search>;
@@ -14,7 +16,7 @@ type SearchProps = GetProps<typeof Input.Search>;
 const dateFormat = 'YYYY-MM-DD';
 dayjs.extend(customParseFormat);
 
-interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
+interface EditableCellProps extends React.HTMLAttributes<HTMLElement> { 
     editing: boolean;
     dataIndex: string;
     title: any;
@@ -22,10 +24,6 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
     record: NoticeBoard;
     index: number;
 }
-
-type NotificationPlacement = NotificationArgsProps['placement'];
-
-
 
 function Table() { 
     const[selectedRowsKey, setSelectedRowsKey] = useState<React.Key[]>([]);
@@ -39,17 +37,10 @@ function Table() {
     const[loading, setLoading] = useState(false); //로딩표시
 
     const[form] = Form.useForm();
-    const[messageApi, contextHolder] = message.useMessage();
-    const [api, contextHolder2] = notification.useNotification();
 
-    const openNotification = (placement: NotificationPlacement, description: string) => {
-        api['success']({
-            title: `Notification`,
-            description,
-            placement,
-            showProgress: true,
-        })
-    };
+    const { contextHolder: notificationContext, openSuccessNotification } = useNotification();
+    const { contextHolder: messageContext, openMessage } = useMessage();
+
 
     const onSwitchChange = () => {
         setShowSearchFilter(!showSearchFilter);
@@ -103,25 +94,19 @@ function Table() {
         setSelectedRowsKey([]);
         setIsAdd(true);
 
-        openNotification('bottomRight','삭제가 완료되었습니다.');
+        openSuccessNotification('삭제가 완료되었습니다.');
 
         
     };
 
     const rowAdd = () =>{
         if(selectedRowsKey.length > 0){
-            messageApi.open({
-                type: 'warning',
-                content: '체크된 목록이 있어 추가작업이 불가능합니다.',
-            });
+            openMessage('체크된 목록이 있어 추가작업이 불가능합니다.');
             return;
         }
 
         if(!isAdd){
-            messageApi.open({
-                type: 'warning',
-                content: '이미 추가중인 작업이 있습니다.',
-            });
+            openMessage('이미 추가중인 작업이 있습니다.');
             return;
         }
 
@@ -208,9 +193,9 @@ function Table() {
                 setSelectedRowsKey([]);
                 setIsAdd(true);
                 if(isAdd)
-                    openNotification('bottomRight','편집을 완료하였습니다.');
+                    openSuccessNotification('수정이 완료되었습니다.');
                 else
-                    openNotification('bottomRight','성공적으로 추가하였습니다.');
+                    openSuccessNotification('성공적으로 저장되었습니다.');
             } else {
                 newtableRow.push(row);
                 dispatch(changeTableRow(newtableRow));
@@ -347,11 +332,8 @@ function Table() {
 
         onChange: (SelectedRowKeys: React.Key[], selection) => {
             if(!isAdd){
-                messageApi.open({
-                    type: 'warning',
-                    content: '이미 추가중인 작업이 있습니다.',
-            });
-            return;
+                openMessage('이미 추가중인 작업이 있습니다.');
+                return;
         }
 
             const uniformKeys = SelectedRowKeys.map(key => String(key)); 
@@ -427,8 +409,8 @@ function Table() {
                     showSorterTooltip={{ target: 'sorter-icon' }} /> 
                 </Spin>
             </Form>
-            {contextHolder}
-            {contextHolder2}
+            {messageContext}
+            {notificationContext}
             <FloatButton onClick={rowAdd}  />
         </Space>
     );
