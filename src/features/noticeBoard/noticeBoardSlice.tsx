@@ -71,7 +71,7 @@ const initialState: NoticeBoard[] = [
 ];
 
 const noticeBoardSlice = createSlice({
-    name : 'talbeRow',
+    name : 'noticeBoard',
     initialState : initialState,
     reducers : {
         changeTableRow(state, action) {

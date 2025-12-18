@@ -1,5 +1,5 @@
-import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, message, Switch, DatePicker } from 'antd';
-import type { TableProps, GetProps } from 'antd';
+import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, InputNumber, FloatButton, message, Switch, DatePicker, Spin, notification } from 'antd';
+import type { TableProps, GetProps, NotificationArgsProps  } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from 'dayjs';
@@ -23,6 +23,10 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
     index: number;
 }
 
+type NotificationPlacement = NotificationArgsProps['placement'];
+
+
+
 function Table() { 
     const[selectedRowsKey, setSelectedRowsKey] = useState<React.Key[]>([]);
     const[selectedReqId, setSelectedReqId] = useState<string[]>([]);
@@ -32,9 +36,20 @@ function Table() {
     const[isAdd, setIsAdd] = useState(true);
     const tableRow = useSelector((state: RootState) => { return state.noticeBoard});
     const dispatch = useDispatch();
+    const[loading, setLoading] = useState(false); //로딩표시
 
-    const [form] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
+    const[form] = Form.useForm();
+    const[messageApi, contextHolder] = message.useMessage();
+    const [api, contextHolder2] = notification.useNotification();
+
+    const openNotification = (placement: NotificationPlacement, description: string) => {
+        api['success']({
+            title: `Notification`,
+            description,
+            placement,
+            showProgress: true,
+        })
+    };
 
     const onSwitchChange = () => {
         setShowSearchFilter(!showSearchFilter);
@@ -52,9 +67,10 @@ function Table() {
             //      newtableRow = tableRow.filter((item: any) => item.status === value);
 
             // dispatch(changeTableRow(newtableRow));
-
+            
             const actionPayload = {id: column, keyword: value};
             dispatch(filterTableRow(actionPayload));
+            
         }else{
             dispatch(initialTableRow());
         }
@@ -78,12 +94,18 @@ function Table() {
     };
 
     const rowDelete = (reqId: string) => {
+        
+
         const newtableRow = tableRow.filter((item: any) => item.reqId !== reqId);
         
         dispatch(changeTableRow(newtableRow));
         setShowOperation(!showOperation);
         setSelectedRowsKey([]);
         setIsAdd(true);
+
+        openNotification('bottomRight','삭제가 완료되었습니다.');
+
+        
     };
 
     const rowAdd = () =>{
@@ -185,6 +207,10 @@ function Table() {
                 setShowOperation(!showOperation);
                 setSelectedRowsKey([]);
                 setIsAdd(true);
+                if(isAdd)
+                    openNotification('bottomRight','편집을 완료하였습니다.');
+                else
+                    openNotification('bottomRight','성공적으로 추가하였습니다.');
             } else {
                 newtableRow.push(row);
                 dispatch(changeTableRow(newtableRow));
@@ -193,6 +219,8 @@ function Table() {
                 setSelectedRowsKey([]);
                 setIsAdd(true);
             }
+
+            
         } catch (errInfo) {
             console.log('Validate Failed:', errInfo);
         }
@@ -318,6 +346,14 @@ function Table() {
         selectedRowKeys: selectedRowsKey,
 
         onChange: (SelectedRowKeys: React.Key[], selection) => {
+            if(!isAdd){
+                messageApi.open({
+                    type: 'warning',
+                    content: '이미 추가중인 작업이 있습니다.',
+            });
+            return;
+        }
+
             const uniformKeys = SelectedRowKeys.map(key => String(key)); 
             const uniformReqId = selection.map(item => item.reqId); 
 
@@ -347,37 +383,38 @@ function Table() {
     });
 
     return (
-        <div>
-                <div style={{display: 'flex'}}>
-                  {/* Search */}
-                    <div className={searchIsVisible}>
-                      {/* Req ID search */}
-                      <Search className="search"
-                              placeholder="Req ID"
-                              allowClear
-                              enterButton="Search"
-                              size="large"
-                              onSearch={(value) => onSearch("reqId",value)} />
-                      {/* Status search */}
-                      <Search className="search"
-                              placeholder="Status"
-                              allowClear
-                              enterButton="search"
-                              size="large"
-                              onSearch={(value) => onSearch("status",value)} />
-                      {/* Start Date search */}
-                      <DatePicker className="search__date"
-                                  minDate={dayjs('2023-01-01', dateFormat)}
-                                  maxDate={dayjs('2025-06-30', dateFormat)} />
-                      {/* End Date search */}
-                      <DatePicker className="search__date"
-                                  minDate={dayjs('2023-01-01', dateFormat)}
-                                  maxDate={dayjs('2025-06-30', dateFormat)} />
-                    </div>
-                  {/* Search filter switch */}
-                  <Switch  className="switch" onChange={onSwitchChange} />
+        <Space orientation="vertical" size="large">
+            <div style={{display: 'flex'}}>
+                {/* Search */}
+                <div className={searchIsVisible}>
+                    {/* Req ID search */}
+                    <Search className="search"
+                            placeholder="Req ID"
+                            allowClear
+                            enterButton="Search"
+                            size="large"
+                            onSearch={(value) => onSearch("reqId",value)} />
+                    {/* Status search */}
+                    <Search className="search"
+                            placeholder="Status"
+                            allowClear
+                            enterButton="search"
+                            size="large"
+                            onSearch={(value) => onSearch("status",value)} />
+                    {/* Start Date search */}
+                    <DatePicker className="search__date"
+                                minDate={dayjs('2023-01-01', dateFormat)}
+                                maxDate={dayjs('2025-06-30', dateFormat)} />
+                    {/* End Date search */}
+                    <DatePicker className="search__date"
+                                minDate={dayjs('2023-01-01', dateFormat)}
+                                maxDate={dayjs('2025-06-30', dateFormat)} />
                 </div>
+                {/* Search filter switch */}
+                <Switch className="switch" onChange={onSwitchChange} />
+            </div>
             <Form form={form} component={false}>
+                <Spin spinning = {loading}>
                 <AntdTable<NoticeBoard>
                     rowKey="reqId"
                     components={{
@@ -387,11 +424,13 @@ function Table() {
                     columns={mergedColumns}
                     dataSource={tableRow}
                     scroll={{ y: '60vh' }}
-                    showSorterTooltip={{ target: 'sorter-icon' }} />
+                    showSorterTooltip={{ target: 'sorter-icon' }} /> 
+                </Spin>
             </Form>
             {contextHolder}
+            {contextHolder2}
             <FloatButton onClick={rowAdd}  />
-        </div>
+        </Space>
     );
 }
 
