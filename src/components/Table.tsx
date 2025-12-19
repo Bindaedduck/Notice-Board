@@ -31,8 +31,15 @@ function Table() {
     const { contextHolder: messageContext, openMessage } = useMessage();
     
     const[columns, setColumns] = useState(tableColumns);
-    const { states, actions, handlers } = useNoticeBoardLogic(tableRow, dispatch, form, columns, setColumns);
-
+    const { states, actions, handlers } = useNoticeBoardLogic(
+        tableRow, 
+        dispatch, 
+        form, 
+        columns, 
+        setColumns, 
+        openSuccessNotification, 
+        openMessage
+    );
 
     const onSwitchChange = () => {
         setShowSearchFilter(!showSearchFilter);

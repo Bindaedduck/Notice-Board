@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { type NoticeBoard, changeTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
-import useNotification from '../hooks/useNotification.ts';
-import useMessage from '../hooks/useMessage.ts';
 
-const useNoticeBoardLogic = (tableRow: any, dispatch: any, form: any, columns: any, setColumns: any ) => {
+const useNoticeBoardLogic = (
+    tableRow: any, 
+    dispatch: any, 
+    form: any, 
+    columns: any, 
+    setColumns: any,
+    openSuccessNotification: (msg: string) => void,
+    openMessage: (msg: string) => void
+) => {
     const[showOperation, setShowOperation] = useState(false);
     const[isAdd, setIsAdd] = useState(true);
     const[editingReqId, setEditingReqId] = useState('');
     const[selectedReqId, setSelectedReqId] = useState<string[]>([]);
     const[selectedRowsKey, setSelectedRowsKey] = useState<React.Key[]>([]);
-
-    const { openSuccessNotification } = useNotification();
-    const { openMessage } = useMessage();
 
     const cancel = (isAdd: boolean) => { 
         if(!isAdd){
