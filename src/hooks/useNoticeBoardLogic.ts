@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { type NoticeBoard, changeTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
+import { type NoticeBoard, changeTableRow } from '.././features/noticeBoard/noticeBoardSlice.ts';
 
 const useNoticeBoardLogic = (
     tableRow: any, 

@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import noticeBoardReducer from './features/noticeBoard/noticeBoardSlice.tsx';
+import noticeBoardReducer from './features/noticeBoard/noticeBoardSlice.ts';
 
 const store = configureStore({
     reducer: {

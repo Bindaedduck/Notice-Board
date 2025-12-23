@@ -1,10 +1,10 @@
 import { Table as AntdTable, Popconfirm, Button, Space, Checkbox, Form, Input, FloatButton, Switch, DatePicker, Spin } from 'antd';
-import type { TableProps, GetProps  } from 'antd';
-import React, { useState } from 'react';
+import type { TableProps  } from 'antd';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from 'dayjs';
-import { type NoticeBoard, initialTableRow, filterTableRow } from '.././features/noticeBoard/noticeBoardSlice.tsx';
-import { type RootState } from '../store.tsx';
+import { type NoticeBoard, fetchNoticeBoard, setSearchQuery } from '.././features/noticeBoard/noticeBoardSlice.ts';
+import { type RootState } from '../store.ts';
 import '../App.css';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import useNotification from '../hooks/useNotification.ts';
@@ -12,27 +12,32 @@ import useMessage from '../hooks/useMessage.ts';
 import tableColumns from '../constants/tableColumns.ts';
 import EditableCell from './EdittableCell.tsx';
 import useNoticeBoardLogic from '../hooks/useNoticeBoardLogic.ts';
+import { selectFilteredNoticeBoard } from '../features/noticeBoard/noticeBoardSelectors.ts';
 
 const { Search } = Input;
-type SearchProps = GetProps<typeof Input.Search>;
 
 const dateFormat = 'YYYY-MM-DD';
 dayjs.extend(customParseFormat);
 
 function Table() { 
     const[showSearchFilter, setShowSearchFilter] = useState(false)
-    const tableRow = useSelector((state: RootState) => { return state.noticeBoard});
+    //const tableRow = useSelector((state: RootState) => { return state.noticeBoard.items});
+    const filteredData = useSelector(selectFilteredNoticeBoard);
     const dispatch = useDispatch();
     const[loading, setLoading] = useState(false); //로딩표시
 
     const[form] = Form.useForm();
+
+    useEffect(() => {
+        dispatch(fetchNoticeBoard());
+    }, [dispatch])
 
     const { contextHolder: notificationContext, openSuccessNotification } = useNotification();
     const { contextHolder: messageContext, openMessage } = useMessage();
     
     const[columns, setColumns] = useState(tableColumns);
     const { states, actions, handlers } = useNoticeBoardLogic(
-        tableRow, 
+        filteredData, 
         dispatch, 
         form, 
         columns, 
@@ -45,25 +50,8 @@ function Table() {
         setShowSearchFilter(!showSearchFilter);
     }
 
-    const onSearch: SearchProps['onSearch'] = (column: string, value: string) => {   
-        
-
-        if(value){
-            // let newtableRow: NoticeBoard[] = [];
-
-            // if(column === 'reqId')
-            //      newtableRow = tableRow.filter((item: any) => (item.reqId).includes(value));   
-            // else if(column === 'status')
-            //      newtableRow = tableRow.filter((item: any) => item.status === value);
-
-            // dispatch(changeTableRow(newtableRow));
-            
-            const actionPayload = {id: column, keyword: value};
-            dispatch(filterTableRow(actionPayload));
-            
-        }else{
-            dispatch(initialTableRow());
-        }
+    const onSearch = (value: string) =>{
+        dispatch(setSearchQuery(value));
     }
 
     const searchIsVisible = `search--IsVisible ${ showSearchFilter? 'visible' : 'hidden'}`
@@ -145,14 +133,14 @@ function Table() {
                             allowClear
                             enterButton="Search"
                             size="large"
-                            onSearch={(value) => onSearch("reqId",value)} />
+                            onSearch={onSearch} />
                     {/* Status search */}
                     <Search className="search"
                             placeholder="Status"
                             allowClear
                             enterButton="search"
                             size="large"
-                            onSearch={(value) => onSearch("status",value)} />
+                            onSearch={onSearch} />
                     {/* Start Date search */}
                     <DatePicker className="search__date"
                                 minDate={dayjs('2023-01-01', dateFormat)}
@@ -174,7 +162,7 @@ function Table() {
                     }}
                     rowSelection={{ type: Checkbox, ...rowSelection }}
                     columns={mergedColumns}
-                    dataSource={tableRow}
+                    dataSource={filteredData}
                     scroll={{ y: '60vh' }}
                     showSorterTooltip={{ target: 'sorter-icon' }} /> 
                 </Spin>

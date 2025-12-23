@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, Input, InputNumber } from 'antd';
-import { type NoticeBoard } from '.././features/noticeBoard/noticeBoardSlice.tsx';
+import { type NoticeBoard } from '.././features/noticeBoard/noticeBoardSlice.ts';
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> { 
     editing: boolean;
